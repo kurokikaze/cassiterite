@@ -17,28 +17,31 @@ var hello = [
     ["/", function(req, res) {
         var page_text = '';
 
-        tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
-            page_text += '<h1>My small node blog</h1>';
+        tyrant.connect();
+        tyrant.addListener('connect', function() {
+            tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
+                page_text += '<h1>My small node blog</h1>';
 
-            page_text += '<div class="entries">';
-            for (item in value) {
-                tyrant.get(value[item]).addCallback(function(raw_item) {
-                    page_text += '<div class="entry">';
-                    var item = tyrant.dict(raw_item);
-                    page_text += '<h3>' + item.name + '</h3>';
-                    if (item.time) {
-                        var post_date = new Date(parseInt(item.time));
-                        page_text += '<div class="post_date">Date: ' + post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds() + '</div>';
-                    }
-                    page_text += '<p>' + item.text + '</p>';
-                    page_text += '</div>';
-                }).wait();
-            }
-            page_text += '</div>';
+                page_text += '<div class="entries">';
+                for (item in value) {
+                    tyrant.get(value[item]).addCallback(function(raw_item) {
+                        page_text += '<div class="entry">';
+                        var item = tyrant.dict(raw_item);
+                        page_text += '<h3>' + item.name + '</h3>';
+                        if (item.time) {
+                            var post_date = new Date(parseInt(item.time));
+                            page_text += '<div class="post_date">Date: ' + post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds() + '</div>';
+                        }
+                        page_text += '<p>' + item.text + '</p>';
+                        page_text += '</div>';
+                    }).wait();
+                }
+                page_text += '</div>';
 
-            page_text = '<html><head><title>My blog</title></head><body>' + page_text + '</body></html>';
+                page_text = '<html><head><title>My blog</title></head><body>' + page_text + '</body></html>';
 
-            res.respond(page_text);
+                res.respond(page_text);
+            });
         });
     }],
     ["/write", function(req, res) {
@@ -67,10 +70,13 @@ var hello = [
 
         // Save post to Tyrant
         getPostParams(req, function(data) {
-            var post = querystring.parse(data);
-            post.time = (new Date()).getTime();
-            tyrant.put('blogentry' + post.time, 'type', 'blog', 'name', post.title, 'text', post.body, 'time', post.time.toString());
-            res.respond('Post saved succesfully. <a href="/">Return</a> to main page.');
+            tyrant.connect();
+            tyrant.addListener('connect', function() {
+                var post = querystring.parse(data);
+                post.time = (new Date()).getTime();
+                tyrant.put('blogentry' + post.time, 'type', 'blog', 'name', post.title, 'text', post.body, 'time', post.time.toString());
+                res.respond('Post saved succesfully. <a href="/">Return</a> to main page.');
+            });
         });
 
     }],
@@ -89,9 +95,5 @@ var hello = [
 
 ];
 
-tyrant.connect();
-tyrant.addListener('connect', function() {
-    // Запускаем nerve только когда установим соединение с TT
-    server = nerve.create(hello);
-    server.serve();
-});
+server = nerve.create(hello);
+server.serve();
