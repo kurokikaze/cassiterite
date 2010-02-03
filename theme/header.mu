@@ -2,10 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 
 <head profile="http://gmpg.org/xfn/11">
-<title>{{title}}</title>
+<title>My little Node blog</title>
 <meta name="author" content="Stelian Firez" />
-<meta name="keywords" content="season7, WordPress, theme, sold, sitepoint" />
-<meta name="description" content="This is the blog of Stelian Firez, a place where you can find lots of news, downloads and tutorials in web design" />
+<meta name="keywords" content="" />
+<meta name="description" content="This is the blog about Node.js" />
 
 <link rel="stylesheet" href="/files/css/style.css" type="text/css" media="screen" />
 <link rel="alternate" type="application/rss+xml" title="Node blog RSS Feed" href="/rss" />
@@ -18,10 +18,10 @@
 			</h1>
 			<h2 id="tagline">Tagline</h2>
 			<ul id="nav">
-				<li><a href="<?php echo get_option('home'); ?>/" title="My little Node blog">Home</a></li>
-                {{# pages }}
-                <li><a href="/entry/{{page}}" title="My little Node blog">{{page}}</a></li>
-				{{/ pages }}
+				<li><a href="/" title="My little Node blog">Home</a></li>
+                {{#pages}}
+                <li><a href="/entry/{{id}}" title="{{title}}">{{title}}</a></li>
+				{{/pages}}
 			</ul>
 		</div>
 	</div>

@@ -54,8 +54,10 @@ var hello = [
                 // page_text += '</div>';
 
                 // page_text = '<html><head><title>My blog</title></head><body>' + page_text + '</body></html>';
-                var page = {'title':'My small Node blog', 'posts': posts, 'pages':[]};
-                Mu.render('page.html', page, {chunkSize: 10}).addCallback(function (output) {
+
+                var page = {'id': '0','title':'My small Node blog', 'posts': posts, 'pages':[]};
+
+                Mu.render('page', page, {chunkSize: 10}).addCallback(function (output) {
 
                     var buffer = '';
 
