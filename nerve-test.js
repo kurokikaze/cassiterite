@@ -1,6 +1,9 @@
 var nerve = require('./nerve/nerve');
 var tyrant = require('./tyrant/tyrant');
 var querystring = require('./querystring/querystring');
+var Mu = require('./mu/mu');
+
+Mu.templateRoot = './theme';
 
 var get = nerve.get;
 var post = nerve.post;
@@ -20,27 +23,55 @@ var hello = [
         tyrant.connect();
         tyrant.addListener('connect', function() {
             tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
-                page_text += '<h1>My small node blog</h1>';
+                // page_text += '<h1>My small node blog</h1>';
 
-                page_text += '<div class="entries">';
+                // page_text += '<div class="entries">';
+                var posts = [];
                 for (item in value) {
                     tyrant.get(value[item]).addCallback(function(raw_item) {
-                        page_text += '<div class="entry">';
+
+                        // page_text += '<div class="entry">';
                         var item = tyrant.dict(raw_item);
-                        page_text += '<h3>' + item.name + '</h3>';
-                        if (item.time) {
-                            var post_date = new Date(parseInt(item.time));
+
+
+                        // page_text += '<h3>' + item.name + '</h3>';
+                        /* if (item.time) {
+
                             page_text += '<div class="post_date">Date: ' + post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds() + '</div>';
-                        }
-                        page_text += '<p>' + item.text + '</p>';
-                        page_text += '</div>';
+                        }*/
+                        var post_date = new Date(parseInt(item.time));
+                        var page = {
+                            id:item.id,
+                            title:item.name,
+                            date: post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds(),
+                            text: item.text
+                        };
+                        // page_text += '<p>' + item.text + '</p>';
+                        // page_text += '</div>';
+                        posts.push(page);
                     }).wait();
                 }
-                page_text += '</div>';
+                // page_text += '</div>';
 
-                page_text = '<html><head><title>My blog</title></head><body>' + page_text + '</body></html>';
+                // page_text = '<html><head><title>My blog</title></head><body>' + page_text + '</body></html>';
+                var page = {'title':'My small Node blog', 'posts': posts, 'pages':[]};
+                Mu.render('page.html', page, {chunkSize: 10}).addCallback(function (output) {
 
-                res.respond(page_text);
+                    var buffer = '';
+
+                    output
+                      .addListener('data', function (c) {
+                        buffer += c;
+                      })
+                      .addListener('eof', function () {
+                        res.respond(buffer);
+                      });
+                  })
+                  .addErrback(function (e) {
+                    res.respond('Oops:' + JSON.stringify(e));
+                  });
+
+                // res.respond(page_text);
             });
         });
     }],
