@@ -4,7 +4,7 @@
 <head profile="http://gmpg.org/xfn/11">
 <title>My little Node blog</title>
 <meta name="author" content="Stelian Firez" />
-<meta name="keywords" content="" />
+<meta name="keywords" content="keywords" />
 <meta name="description" content="This is the blog about Node.js" />
 
 <link rel="stylesheet" href="/files/style.css" type="text/css" media="screen" />
@@ -44,29 +44,28 @@
     </div>
     <div id="content">
         <div id="content-wrap">
-        	<div id="posts">
+            <div id="posts">
 
-		{{#posts}}
+            <div class="post" id="post-{{id}}">
+                <h2><a href="{{link}}" rel="bookmark" title="Permanent Link to {{title}}">{{title}}</a></h2>
+                <p class="date">{{date}}</p>
+                <div class="entry">
+                    {{text}}
+                </div>
+                <div class="postmetadata">
+                    <span class="tags">{{tags}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comments-no">{{num-of-comments}}</span>
+                </div>
+            </div>
 
-		<div class="post" id="post-{{id}}">
-			<h2><a href="{{link}}" rel="bookmark" title="Permanent Link to {{title}}">{{title}}</a></h2>
-			<p class="date">{{date}}</p>
-			<div class="entry">
-				{{text}}
-			</div>
-			<div class="postmetadata">
-				<span class="tags">{{tags}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comments-no">{{num-of-comments}}</span>
-			</div>
-		</div>
+            </div>
 
-		{{/posts}}
+        <div class="navigation">
+            <div class="alignleft">Previous entries &laquo;</div>
+            <div class="alignright">Next Entries &raquo;</div>
+        </div>
 
-		<div class="navigation">
-			<div class="alignleft">Previous entries &laquo;</div>
-			<div class="alignright">Next Entries &raquo;</div>
-		</div>
 
-	</div>
+    </div>
 
     <div id="footer">
         <div id="footer-wrap">
