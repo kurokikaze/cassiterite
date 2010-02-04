@@ -3,6 +3,38 @@ var tyrant = require('./tyrant/tyrant');
 var querystring = require('./querystring/querystring');
 var Mu = require('./mu/mu');
 
+// var sys = require('sys');
+
+// combo library
+function Combo(callback) {
+  this.callback = callback;
+  this.items = 0;
+  this.results = [];
+}
+Combo.prototype = {
+  add: function () {
+    var self = this;
+    this.items++;
+    return function () {
+      self.check(self.items - 1, arguments);
+    };
+  },
+  check: function (id, arguments_in) {
+    this.results[id] = arguments_in;
+    this.items--;
+    if (this.items == 0) {
+      this.callback.call(this, this.results);
+    }
+  }
+};
+    // Usage
+    /* var both = new Combo(function () {
+      puts(inspect(arguments));
+    });
+    setTimeout(both.add(), 100);
+    setTimeout(both.add(), 50);
+
+    */
 Mu.templateRoot = './theme';
 
 var get = nerve.get;
@@ -22,21 +54,19 @@ var site ={
 
 var hello = [
     ["/", function(req, res) {
-        var page_text = '';
-
         tyrant.connect();
         tyrant.addListener('connect', function() {
             tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
 
-                var posts = [];
-                for (item in value) {
-                    var page_id = value[item];
-                    tyrant.get(page_id).addCallback(function(raw_item) {
+                var posts_gatherer = new Combo(function (added_posts) {
 
-                        var item = tyrant.dict(raw_item);
+                    var posts_processed = [];
+
+                    for (var raw_item in added_posts) {
+                        var item = tyrant.dict(added_posts[raw_item][0]);
 
                         var post_date = new Date(parseInt(item.time));
-                        var page = {
+                        posts_processed.push({
                             id: page_id,
                             title:item.name,
                             link:'blog/' + page_id,
@@ -44,37 +74,40 @@ var hello = [
                             text: item.text,
                             tags: '',
                             num_of_comments: 0
-                        };
+                        });
+                    }
+                    
+                    var page = {'id': '0','title':'My small Node blog', 'posts': posts_processed, 'pages':[]};
 
-                        posts.push(page);
-                    }).wait();
-                }
+                    Mu.render('page', page, {chunkSize: 10}).addCallback(function (output) {
 
-                var page = {'id': '0','title':'My small Node blog', 'posts': posts, 'pages':[]};
+                        var buffer = '';
 
-                Mu.render('page', page, {chunkSize: 10}).addCallback(function (output) {
-
-                    var buffer = '';
-
-                    output
-                      .addListener('data', function (c) {
-                        buffer += c;
+                        output
+                          .addListener('data', function (c) {
+                            buffer += c;
+                          })
+                          .addListener('eof', function () {
+                            res.respond(buffer);
+                          });
                       })
-                      .addListener('eof', function () {
-                        res.respond(buffer);
+                      .addErrback(function (e) {
+                        res.respond('Oops:' + JSON.stringify(e));
                       });
-                  })
-                  .addErrback(function (e) {
-                    res.respond('Oops:' + JSON.stringify(e));
-                  });
+
+                });
+
+                for (item in value) {
+                    var page_id = value[item];
+                    // Собираем все посты 
+                    tyrant.get(page_id).addCallback(posts_gatherer.add());
+                }
 
                 // res.respond(page_text);
             });
         });
     }],
     ["/write", function(req, res) {
-        var page_text = '';
-
         page_text += '<h1>My small node blog</h1>';
 
         page_text += '<h2>Write new blog entry</h2>';
@@ -101,7 +134,7 @@ var hello = [
 
 
 
-        Mu.render('post', blog_post, {chunkSize: 10}).addCallback(function (output) {
+        Mu.render('post', page, {chunkSize: 10}).addCallback(function (output) {
 
             var buffer = '';
 
