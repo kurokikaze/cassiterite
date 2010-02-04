@@ -3,33 +3,30 @@ var tyrant = require('./tyrant/tyrant');
 var querystring = require('./querystring/querystring');
 var Mu = require('./mu/mu');
 
-var sys = require('sys');
+// var sys = require('sys');
 
 // combo library
-    function Combo(callback) {
-      this.callback = callback;
-      this.items = 0;
-      this.results = [];
-    }
-    Combo.prototype = {
-      add: function () {
-        sys.puts('Adding promise to combo');
-        var self = this;
-        this.items++;
-        return function () {
-          sys.puts('Combo part fired with ' + (self.items - 1) + ' id, arguments is ' + JSON.stringify(arguments));
-          self.check(self.items - 1, arguments);
-        };
-      },
-      check: function (id, arguments_in) {
-        this.results[id] = arguments_in;
-        this.items--;
-        if (this.items == 0) {
-          sys.puts('Combo is approaching the end, resultset count is ' + this.results.length);
-          this.callback.call(this, this.results);
-        }
-      }
+function Combo(callback) {
+  this.callback = callback;
+  this.items = 0;
+  this.results = [];
+}
+Combo.prototype = {
+  add: function () {
+    var self = this;
+    this.items++;
+    return function () {
+      self.check(self.items - 1, arguments);
     };
+  },
+  check: function (id, arguments_in) {
+    this.results[id] = arguments_in;
+    this.items--;
+    if (this.items == 0) {
+      this.callback.call(this, this.results);
+    }
+  }
+};
     // Usage
     /* var both = new Combo(function () {
       puts(inspect(arguments));
@@ -62,8 +59,6 @@ var hello = [
             tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
 
                 var posts_gatherer = new Combo(function (added_posts) {
-
-                    sys.puts('Gatherer done, results count is: ' + added_posts.length);
 
                     var posts_processed = [];
 
