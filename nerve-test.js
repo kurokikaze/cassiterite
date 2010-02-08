@@ -3,7 +3,7 @@ var tyrant = require('./tyrant/tyrant');
 var querystring = require('./querystring/querystring');
 var Mu = require('./mu/mu');
 
-// var sys = require('sys');
+var sys = require('sys');
 
 // combo library
 function Combo(callback) {
@@ -27,14 +27,7 @@ Combo.prototype = {
     }
   }
 };
-    // Usage
-    /* var both = new Combo(function () {
-      puts(inspect(arguments));
-    });
-    setTimeout(both.add(), 100);
-    setTimeout(both.add(), 50);
 
-    */
 Mu.templateRoot = './theme';
 
 var get = nerve.get;
@@ -55,10 +48,16 @@ var site ={
 var hello = [
     ["/", function(req, res) {
         tyrant.connect();
+
+        tyrant.addListener('error', function(e) {
+            sys.puts('Error: ' + JSON.stringify(e));
+        });
+
         tyrant.addListener('connect', function() {
             tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
+                tyrant.getlist(value).addCallback(function(added_posts) {
 
-                var posts_gatherer = new Combo(function (added_posts) {
+                    // res.respond('Done: ' + JSON.stringify(added_posts));
 
                     var posts_processed = [];
 
@@ -67,16 +66,16 @@ var hello = [
 
                         var post_date = new Date(parseInt(item.time));
                         posts_processed.push({
-                            id: page_id,
+                            id: raw_item,
                             title:item.name,
-                            link:'blog/' + page_id,
+                            link:'blog/' + raw_item,
                             date: post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds(),
-                            text: item.text,
+                            text: JSON.stringify(item), // item.text,
                             tags: '',
                             num_of_comments: 0
                         });
                     }
-                    
+
                     var page = {'id': '0','title':'My small Node blog', 'posts': posts_processed, 'pages':[]};
 
                     Mu.render('page', page, {chunkSize: 10}).addCallback(function (output) {
@@ -94,16 +93,11 @@ var hello = [
                       .addErrback(function (e) {
                         res.respond('Oops:' + JSON.stringify(e));
                       });
-
                 });
 
-                for (item in value) {
-                    var page_id = value[item];
-                    // Собираем все посты 
-                    tyrant.get(page_id).addCallback(posts_gatherer.add());
-                }
-
                 // res.respond(page_text);
+            }).addErrback(function(e){
+                res.respond('Search Oops:' + JSON.stringify(e));
             });
         });
     }],
@@ -147,7 +141,7 @@ var hello = [
               });
         })
           .addErrback(function (e) {
-            res.respond('Oops:' + JSON.stringify(e));
+            res.respond('Theming Oops:' + JSON.stringify(e));
         });
 
 
@@ -171,7 +165,6 @@ var hello = [
 
     [get(/^\/blog\/(\w+)$/), function(req, res, post_id) {
 
-        var page_text = '';
         tyrant.connect();
         tyrant.addListener('connect', function() {
             tyrant.get(post_id).addCallback(function(raw_item) {
@@ -200,11 +193,12 @@ var hello = [
                       .addListener('eof', function () {
                         res.respond(buffer);
                       });
-                })
-                  .addErrback(function (e) {
-                    res.respond('Oops:' + JSON.stringify(e));
+                }).addErrback(function (e) {
+                    res.respond('Render Oops:' + JSON.stringify(e));
                 });
 
+            }).addErrback(function(e) {
+                res.respond('Get Oops:' + JSON.stringify(e));
             });
         });
 
