@@ -57,6 +57,7 @@ var hello = [
             tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
                 tyrant.getlist(value).addCallback(function(added_posts) {
 
+                    tyrant.quit();
                     // res.respond('Done: ' + JSON.stringify(added_posts));
 
                     var posts_processed = [];
@@ -157,6 +158,7 @@ var hello = [
                 var post = querystring.parse(data);
                 post.time = (new Date()).getTime();
                 tyrant.put('blogentry' + post.time, 'type', 'blog', 'name', post.title, 'text', post.body, 'time', post.time.toString());
+                tyrant.quit();
                 res.respond('Post saved succesfully. <a href="/">Return</a> to main page.');
             });
         });
@@ -168,6 +170,8 @@ var hello = [
         tyrant.connect();
         tyrant.addListener('connect', function() {
             tyrant.get(post_id).addCallback(function(raw_item) {
+
+                tyrant.quit();
 
                 var item = tyrant.dict(raw_item);
 
