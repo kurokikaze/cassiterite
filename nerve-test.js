@@ -94,6 +94,8 @@ var hello = [
                       .addErrback(function (e) {
                         res.respond('Oops:' + JSON.stringify(e));
                       });
+                }).addErrback(function(e) {
+                    res.respond('Getlist Oops:' + JSON.stringify(e));
                 });
 
                 // res.respond(page_text);
