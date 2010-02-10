@@ -60,17 +60,20 @@ var hello = [
                     // res.respond('Done: ' + JSON.stringify(added_posts));
 
                     var posts_processed = [];
+                    var items = tyrant.dict(added_posts);
 
-                    for (var raw_item in added_posts) {
-                        var item = tyrant.dict(added_posts[raw_item][0]);
+                    for (var raw_item in items) {
+                        var item_mock = items[raw_item].split('\u0000');
+                        var item = tyrant.dict(item_mock);
 
                         var post_date = new Date(parseInt(item.time));
+                        
                         posts_processed.push({
                             id: raw_item,
                             title:item.name,
                             link:'blog/' + raw_item,
                             date: post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds(),
-                            text: JSON.stringify(item), // item.text,
+                            text: item.text,
                             tags: '',
                             num_of_comments: 0
                         });
@@ -89,10 +92,10 @@ var hello = [
                           .addListener('eof', function () {
                             res.respond(buffer);
                           });
-                      })
-                      .addErrback(function (e) {
-                        res.respond('Oops:' + JSON.stringify(e));
+                      }).addErrback(function (e) {
+                        res.respond('Render Oops:' + JSON.stringify(e));
                       });
+                      
                 });
 
                 // res.respond(page_text);
