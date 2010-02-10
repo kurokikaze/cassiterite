@@ -145,8 +145,6 @@ var hello = [
             res.respond('Theming Oops:' + JSON.stringify(e));
         });
 
-
-        res.respond(page_text);
     }],
 
     [post('/save'), function(req, res) {

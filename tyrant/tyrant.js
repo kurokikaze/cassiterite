@@ -326,11 +326,11 @@ function onReceive(data) {
     if (offset>=0) {
       response=response.slice(offset);
     }
-    if ( offset>=0 || result || err ) {
+    if ( offset >= 0 || result || err ) {
       var callback = callbacks.shift();
       if (callback && callback.promise) {
-	  if (result) {callback.promise.emitSuccess(result);}
-	  if (err) {callback.promise.emitError(err);}
+	      if (result) {callback.promise.emitSuccess(result);}
+	      if (err) {callback.promise.emitError(err);}
       }
     }
   }
