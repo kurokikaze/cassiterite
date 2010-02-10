@@ -65,7 +65,7 @@ var commandCode = {
     iterinit: String.fromCharCode(0x50),
     iternext: String.fromCharCode(0x51),
     status: String.fromCharCode(0x88),
-    addint: String.fromCharCode(0x60)
+    addint: String.fromCharCode(0x60),
 }
 
 // Commands and their request and response functions
@@ -83,7 +83,7 @@ var commands = {
   setindex:[formatMisc, responseSingle],
   search:[formatMisc, responseMisc],
   addint:[formatInt, responseInt],
-  genuid:[formatMisc, responseMisc]
+  genuid:[formatMisc, responseMisc],
 }
 
 // Filter queries for search
@@ -102,7 +102,7 @@ var queries = {
   'lt' : '11',
   'lte' : '12',
   'between' : '13',
-  'eqone' : '14'
+  'eqone' : '14',
 }
 
 // Take a raw binary string and return a utf8 string
@@ -192,15 +192,14 @@ function formatMisc(commandName, commandArgs, argCount, opts) {
   var cmdArgs='';
   var cmdCount=0;
   for (var i=0; i<argCount; i++) {
-    var d;
     if (typeof commandArgs[i]=='string') {
-      d = encode_utf8(commandArgs[i]);
+      var d=encode_utf8(commandArgs[i]);
       cmdArgs += packInt(d.length) + d;
       cmdCount++;
     } else {
       // Deal with an array of strings
       for (var j=0; j<commandArgs[i].length; j++) {
-	d = encode_utf8(commandArgs[i][j]);
+	var d=encode_utf8(commandArgs[i][j]);
 	cmdArgs += packInt(d.length) + d;
 	cmdCount++;
       }
@@ -326,11 +325,11 @@ function onReceive(data) {
     if (offset>=0) {
       response=response.slice(offset);
     }
-    if ( offset >= 0 || result || err ) {
+    if ( offset>=0 || result || err ) {
       var callback = callbacks.shift();
       if (callback && callback.promise) {
-	      if (result) {callback.promise.emitSuccess(result);}
-	      if (err) {callback.promise.emitError(err);}
+	  if (result) {callback.promise.emitSuccess(result);}
+	  if (err) {callback.promise.emitError(err);}
       }
     }
   }

@@ -88,11 +88,7 @@ function tableSearchExample() {
   tyrant.put('k1', 'name', 'Joe Blogs');
   tyrant.put('k2', 'name', 'Joe Smith');
   tyrant.put('k3', 'name', 'Bill Smith');
-    tyrant.setindex('name', tyrant.ITLEXICAL).addCallback(function(value) {
-        sys.puts('Index : '+value);
-    }).addErrback(function(error) {
-        sys.puts('Error : '+error);
-    });
+  tyrant.setindex('name', tyrant.ITLEXICAL).addCallback(function(value) {sys.puts('Result : '+value);}).addErrback(function(error) {sys.puts('Error : '+error);});
 
   // Do a test get
   tyrant.get('k1').addCallback(function(value) {value=tyrant.dict(value); sys.puts('Name = '+value.name);});
@@ -142,18 +138,16 @@ function tableDemo(){
 function runDemo() {
 
     tyrant.status().addCallback(function(s) {
-        sys.puts('Tokyo Tyrant Server Status');
-        sys.puts('--------------------------');
-        sys.puts(s);
-        sys.puts('\n');
-        if (s.indexOf('type\ttable')>=0) {
-          sys.puts('Table demo');
-          tableDemo();
-        } else {
-          sys.puts('General demo');
-          generalDemo();
-        }
-        tyrant.quit();
+    sys.puts('Tokyo Tyrant Server Status');
+    sys.puts('--------------------------');
+    sys.puts(s);
+    sys.puts('\n');
+    if (s.indexOf('type\ttable')>=0) {
+      tableDemo();
+    } else {
+      generalDemo();
+    }
+    tyrant.quit();
   });
 }
 
