@@ -1,138 +1,143 @@
-var sys = require('sys');
-var http = require('http');
-require('./http_state');
+/*global require, process, exports */
+'use strict';
 
-(function() {
+(function () {
+	var sys = require('sys'),
+		http = require('./http_state'),
+		url = require('url'),
+		path = require('path'),
+		posix = require('posix'),
+		mime = require('./mime');
+
 	process.mixin(http.ServerResponse.prototype, {
-		respond: function(response_data) {
+		respond: function (response_data) {
 			var headers = {
 				'Content-Type': 'text/html',
-				'Content-Length': (response_data.content && response_data.content.length) || response_data.length || 0,
+				'Content-Length': (response_data.content && response_data.content.length) || response_data.length || 0
+			}, name;
+			if (this.cookies) {
+				headers['Set-Cookie'] = this.cookies.join(', ');
 			}
-			if(this.cookies) headers['Set-Cookie'] = this.cookies.join(', ');
-			for(name in response_data.headers) headers[name] = response_data.headers[name];
+			for (name in response_data.headers) {
+				if (response_data.headers.hasOwnProperty(name)) {
+					headers[name] = response_data.headers[name];
+				}
+			}
 			this.sendHeader(response_data.status_code || 200, headers);
-			this.sendBody(response_data.content || response_data);
+			this.sendBody(response_data.content || response_data, 'binary');
 			this.finish();
 		}
 	});
-
+	
 	function match_request(matcher, req) {
-		if(typeof matcher === 'string') {
+		if (typeof matcher === 'string') {
 			return (matcher === req.url);
-		} else if(matcher.constructor === RegExp) {
+		} else if (matcher.constructor === RegExp) {
 			return req.url.match(matcher);
 		} else {
 			return req.url.match(matcher.apply(req));
 		}
 	}
-
+	
 	function to_regexp(pattern) {
-		if(pattern.constructor === RegExp) {
+		if (pattern.constructor === RegExp) {
 			return pattern;
 		} else {
 			return new RegExp('^' + pattern + '$');
 		}
 	}
+	
 	function get(pattern) {
-		return function() {
-			if(this.method !== 'GET') {
+		return function () {
+			if (this.method !== 'GET') {
 				return false;
 			} else {
 				return to_regexp(pattern);
 			}
-		}
-	};
+		};
+	}
 
 	function post(pattern) {
-		return function() {
-			if(this.method !== 'POST') {
+		return function () {
+			if (this.method !== 'POST') {
 				return false;
 			} else {
 				return to_regexp(pattern);
 			}
-		}
-	};
+		};
+	}
 
 	function put(pattern) {
-		return function() {
-			if(this.method !== 'PUT') {
+		return function () {
+			if (this.method !== 'PUT') {
 				return false;
 			} else {
 				return to_regexp(pattern);
 			}
-		}
-	};
+		};
+	}
 
 	function del(pattern) {
-		return function() {
-			if(this.method !== 'DELETE') {
+		return function () {
+			if (this.method !== 'DELETE') {
 				return false;
 			} else {
 				return to_regexp(pattern);
 			}
-		}
-	};
+		};
+	}
+
+	function serve_static_file(pathname, res) {
+		path.exists(pathname, function (exists) {
+			if (exists) {
+				posix.cat(pathname, 'binary').addCallback(function (content) {
+					res.respond({content: content, headers: {'Content-Type': mime.mime_type(pathname)}});
+				}).addErrback(function (e) {
+					res.respond({content: '<html><head><title>Exception</title></head><body><h1>Exception</h1><pre>' + sys.inspect(e) + '</pre></body></html>', status_code: 501});
+				});
+			} else {
+				res.respond({content: '<html><head><title>Not Found</title></head><body><h1>Not Found</h1></body></html>', status_code: 404});
+			}
+		});
+	}
 
 	function create(app, options) {
+		options = options || {};
 		function request_handler(req, res) {
-			req.session = req.get_or_create_session(req, res, {duration: options.session_duration || 30*60*1000});
-			for(var i = 0; i < app.length; i++) {
-				var matcher = app[i][0], handler = app[i][1], handler_args = [req, res], match = match_request(matcher, req);
-				if(match) {
+			var matcher, handler, handler_args, match, pathname;
+			req.session = req.get_or_create_session(req, res, {duration: options.session_duration || 30 * 60 * 1000});
+			for (var i = 0; i < app.length; i += 1) {
+				matcher = app[i][0];
+				handler = app[i][1];
+				handler_args = [req, res];
+				match = match_request(matcher, req);
+				if (match) {
 					try {
-						if(typeof match.slice === 'function') {
+						if (typeof match.slice === 'function') {
 							handler_args = handler_args.concat(match.slice(1));
 						}
 						handler.apply(null, handler_args);
-					} catch(e) {
+					} catch (e) {
 						res.respond({content: '<html><head><title>Exception</title></head><body><h1>Exception</h1><pre>' + sys.inspect(e) + '</pre></body></html>', status_code: 501});
 					}
 					return;
 				}
 			}
-			res.respond({content: '<html><head><title>Not Found</title></head><body><h1>Not Found</h1></body></html>', status_code: 404});
+			// no matching handler found; check for file if document_root option provided
+			if(options.document_root) {
+				pathname = options.document_root + unescape(url.parse(req.url).pathname).replace(/\.{2,}\//g, './');
+				serve_static_file(pathname, res);
+			} else {
+				res.respond({content: '<html><head><title>Not Found</title></head><body><h1>Not Found</h1></body></html>', status_code: 404});
+			}
 		}
 
-		options = options || {};
-		if(!options.port && !options.ssl_port) options.port = 8000;
-
-		if(options.port) {
-			var server = http.createServer(request_handler);
-		}
-
-		if(options.ssl_port && options.private_key && options.certificate) {
-			var ssl_server = http.createServer(request_handler);
-			ssl_server.setSecure('X509_PEM', options.ca_certs, options.crl_list, options.private_key, options.certificate);
-		}
-
-		return {
-			serve: function() {
-				if(server) server.listen(options.port, options.host);
-				if(ssl_server) ssl_server.listen(options.ssl_port, options.host);
-				return this;
-			},
-
-			close: function() {
-				if(server) server.close();
-				if(ssl_server) ssl_server.close();
-				return this;
-			},
-
-            swap: function(pattern, callback) {
-                for(var i = 0; i < app.length; i++) {
-                    if (app[i][0] == pattern) {
-                        app[i][1] = callback;
-                    }
-                }
-            }
-
-		}
-	};
-
+		return http.createServer(request_handler);
+	}
+	
 	exports.get = get;
 	exports.post = post;
 	exports.put = put;
 	exports.del = del;
 	exports.create = create;
-})();
+}());

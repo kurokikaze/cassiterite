@@ -209,5 +209,4 @@ var hello = [
 
 ];
 
-server = nerve.create(hello);
-server.serve();
+nerve.create(hello).listen(8000);
