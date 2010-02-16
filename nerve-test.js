@@ -48,12 +48,12 @@ var hello = [
         blog.getPosts(0, 0, function(posts) {
 
             var page = {'id': '0','title':'My small Node blog', 'posts': posts, 'pages':[]};
-            blog.render('page', req, page);
+            blog.render('page', res, page);
 
         });
 
     }],
-    
+
     ["/write", function(req, res) {
 
         page_text += '<h1>My small node blog</h1>';
@@ -73,7 +73,11 @@ var hello = [
         getPostParams(req, function(data) {
             var post = querystring.parse(data);
             post.time = (new Date()).getTime();
-            blog.savePost(post);
+            blog.savePost(post).addCallback(function(){
+
+                blog.renderPage('Post saved succesfully', '<p>Your post was saved succesfully, you can <a href="/add">add another</a> or <a href="/">return to main page</a>.</p>');
+
+            });
         });
 
     }],
@@ -81,7 +85,7 @@ var hello = [
     [get(/^\/blog\/(\w+)$/), function(req, res, post_id) {
 
         blog.getPost(post_id).addCallback(function(post) {
-            blog.render('post', req, post);
+            blog.render('post', res, post);
         });
 
     }]

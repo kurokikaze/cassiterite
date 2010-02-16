@@ -21,8 +21,6 @@ var cassiterite = {};
                 tyrant.search(tyrant.is('type', 'blog'), tyrant.sort('time', 'desc')).addCallback(function(value) {
                     tyrant.getlist(value).addCallback(function(added_posts) {
 
-                        // res.respond('Done: ' + JSON.stringify(added_posts));
-
                         var posts_processed = [];
                         var items = tyrant.dict(added_posts);
 
@@ -48,7 +46,7 @@ var cassiterite = {};
 
                     // res.respond(page_text);
                 }).addErrback(function(e){
-                    res.respond('Search Oops:' + JSON.stringify(e));
+                    promise.emitError(e);
                 });
             });
 
@@ -58,7 +56,7 @@ var cassiterite = {};
             return promise;
         },
 
-        render: function(type, request, page, callback) {
+        render: function(type, response, page, callback) {
             var promise = new events.Promise();
             Mu.render(type, page, {chunkSize: 10}).addCallback(function (output) {
 
@@ -69,11 +67,11 @@ var cassiterite = {};
                     buffer += c;
                   })
                   .addListener('eof', function () {
-                    res.respond(buffer);
+                    response.respond(buffer);
                     promise.emitSuccess(true);
                   });
             }).addErrback(function (e) {
-                res.respond('Render Oops:' + JSON.stringify(e));
+                response.respond('Render Oops:' + JSON.stringify(e));
                 promise.emitError(e);
             });
 
@@ -105,8 +103,7 @@ var cassiterite = {};
                     promise.emitSuccess(blog_post);
 
                 }).addErrback(function(e) {
-                    res.respond('Get Oops:' + JSON.stringify(e));
-                    promise.emitError('Get Oops:' + JSON.stringify(e));
+                    promise.emitError(e);
                 });
             });
 
@@ -128,7 +125,7 @@ var cassiterite = {};
             return promise;
         },
 
-        renderPage: function(title, text, req) {
+        renderPage: function(title, text, response) {
             var page = {
                 'id': '0',
                 'title': title,
@@ -137,7 +134,7 @@ var cassiterite = {};
                 'num_of_comments': 0
             };
 
-            this.render('page', page, req);
+            this.render('page', page, response);
         }
 
     };
