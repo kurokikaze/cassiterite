@@ -1,10 +1,13 @@
 var events = require('events');
 var Mu = require('./mu/mu');
 var tyrant = require('./tyrant/tyrant');
+var showdown = require('./showdown');
 
 Mu.templateRoot = './theme';
 
 var cassiterite = {};
+
+var converter = new showdown.converter();
 
 // Closure
 (function(){
@@ -94,7 +97,7 @@ var cassiterite = {};
                     var blog_post = {
                         'id': '0',
                         'title':item.name,
-                        'text': item.text,
+                        'text': converter.makeHtml(item.text),
                         'date': post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds(),
                         'tags': item.tags,
                         'num_of_comments': 0
@@ -134,7 +137,7 @@ var cassiterite = {};
                 'num_of_comments': 0
             };
 
-            this.render('page', page, response);
+            this.render('post', response, page);
         }
 
     };
