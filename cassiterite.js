@@ -88,7 +88,7 @@ var converter = new showdown.converter();
             var promise = new events.Promise();
             tyrant.connect();
             tyrant.addListener('connect', function() {
-                tyrant.get(post_id).addCallback(function(raw_item) {
+                tyrant.get(id).addCallback(function(raw_item) {
 
                     var item = tyrant.dict(raw_item);
 

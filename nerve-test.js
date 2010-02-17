@@ -75,7 +75,7 @@ var hello = [
             post.time = (new Date()).getTime();
             blog.savePost(post).addCallback(function(){
 
-                blog.renderPage('Post saved succesfully', '<p>Your post was saved succesfully, you can <a href="/add">add another</a> or <a href="/">return to main page</a>.</p>');
+                blog.renderPage('Post saved succesfully', '<p>Your post was saved succesfully, you can <a href="/add">add another</a> or <a href="/">return to main page</a>.</p>', res);
 
             });
         });
