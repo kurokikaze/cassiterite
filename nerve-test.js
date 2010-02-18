@@ -54,9 +54,9 @@ var hello = [
 
     }],
 
-    ["/write", function(req, res) {
+    [get("/write"), function(req, res) {
 
-        page_text += '<h1>My small node blog</h1>';
+        var page_text = '<h1>My small node blog</h1>';
         page_text += '<h2>Write new blog entry</h2>';
         page_text += '<form method="POST" action="/save">';
         page_text += '<label for="title">Post title</label><br/><input type="text" name="title" /><br/>';
@@ -64,7 +64,7 @@ var hello = [
         page_text += '<input type="submit" value="Save post" />';
         page_text += '</form>';
 
-        blog.renderPage('Add content to blog', page_text, req);
+        blog.renderPage('Add content to blog', page_text, res);
     }],
 
     [post('/save'), function(req, res) {
@@ -75,7 +75,7 @@ var hello = [
             post.time = (new Date()).getTime();
             blog.savePost(post).addCallback(function(){
 
-                blog.renderPage('Post saved succesfully', '<p>Your post was saved succesfully, you can <a href="/add">add another</a> or <a href="/">return to main page</a>.</p>');
+                blog.renderPage('Post saved succesfully', '<p>Your post was saved succesfully, you can <a href="/add">add another</a> or <a href="/">return to main page</a>.</p>', res);
 
             });
         });

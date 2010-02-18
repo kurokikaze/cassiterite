@@ -52,7 +52,7 @@
 			<h2><a href="{{link}}" rel="bookmark" title="Permanent Link to {{title}}">{{title}}</a></h2>
 			<p class="date">{{date}}</p>
 			<div class="entry">
-				{{text}}
+				{{{text}}}
 			</div>
 			<div class="postmetadata">
 				<span class="tags">{{tags}}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comments-no">{{num-of-comments}}</span>
