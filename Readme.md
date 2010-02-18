@@ -8,4 +8,4 @@ To use this you need to have Tokyo Tyrant installed and running with table type 
 
 Start:
 
-    node nerve.test 2> /var/log/cassiterite.log &
+    node nerve-test.js 2> /var/log/cassiterite.log &
