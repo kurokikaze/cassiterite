@@ -33,12 +33,16 @@ var converter = new showdown.converter();
 
                             var post_date = new Date(parseInt(item.time));
 
+                            if (!item.text) {
+                                item.text = '';
+                            }
+
                             posts_processed.push({
                                 id: raw_item,
-                                title:item.name,
+                                title: item.name,
                                 link:'blog/' + raw_item,
                                 date: post_date.getDate() + '.' + (post_date.getMonth() + 1) + '.' + post_date.getFullYear() + ' ' + post_date.getHours() + ':' + post_date.getMinutes() + ':' + post_date.getSeconds(),
-                                text: item.text,
+                                text: converter.makeHtml(item.text),
                                 tags: '',
                                 num_of_comments: 0
                             });
